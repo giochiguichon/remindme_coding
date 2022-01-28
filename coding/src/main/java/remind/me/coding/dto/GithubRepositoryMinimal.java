@@ -7,7 +7,7 @@ public class GithubRepositoryMinimal {
     private String languages_url;
     private String ssh_url;
     private String clone_url;
-    private String languages;
+    private String languagesDescription;
 
     public long getId() {
         return id;
@@ -55,5 +55,13 @@ public class GithubRepositoryMinimal {
 
     public void setClone_url(String clone_url) {
         this.clone_url = clone_url;
+    }
+
+    public String getLanguagesDescription() {
+        return languagesDescription;
+    }
+
+    public void setLanguagesDescription(String languagesDescription) {
+        this.languagesDescription = languagesDescription;
     }
 }

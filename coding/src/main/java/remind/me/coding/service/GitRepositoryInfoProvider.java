@@ -1,7 +1,6 @@
 package remind.me.coding.service;
 
 import org.apache.tomcat.util.codec.binary.Base64;
-import org.hibernate.service.spi.InjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -10,8 +9,7 @@ import remind.me.coding.config.GitApiClientProperties;
 import remind.me.coding.dto.GithubRepositoryMinimal;
 
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Component
 public class GitRepositoryInfoProvider {
@@ -39,10 +37,34 @@ public class GitRepositoryInfoProvider {
                 new HttpEntity<>(headers),
                 GithubRepositoryMinimal[].class);
 
-        if(repositoriesResult.getStatusCode() == HttpStatus.OK)
-            return new ArrayList<GithubRepositoryMinimal>(List.of(repositoriesResult.getBody()));
+        if(repositoriesResult.getStatusCode() == HttpStatus.OK) {
 
+            var repositories = List.of(repositoriesResult.getBody());
+
+            for (var repo: repositories){
+                repo.setLanguagesDescription(getLanguagesFromUrl(repo.getLanguages_url()));
+            }
+
+            return new ArrayList<GithubRepositoryMinimal>(List.of(repositoriesResult.getBody()));
+        }
         else return new ArrayList<GithubRepositoryMinimal>(0);
+    }
+
+    public String getLanguagesFromUrl(String languagesUrl){
+        var headers = createHeaders(gitApiClientProperties.getGitUser(), gitApiClientProperties.getGitToken());
+
+        ResponseEntity<? extends HashMap> getLanguagesResult = restTemplate.exchange(languagesUrl, HttpMethod.GET, new HttpEntity<>(headers),new HashMap<String,Object>().getClass());
+
+        if(getLanguagesResult.getStatusCode() == HttpStatus.OK){
+            String result = "";
+            var resultDictionary = getLanguagesResult.getBody();
+
+            for (Object entry: resultDictionary.keySet()){
+                result += entry + ":" + resultDictionary.get(entry).toString();
+            }
+            return result;
+        }
+        return null;
     }
 
     HttpHeaders createHeaders(String username, String password){
